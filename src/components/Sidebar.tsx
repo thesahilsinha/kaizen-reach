@@ -1,6 +1,6 @@
 'use client'
 import { usePathname, useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { LayoutDashboard, Users, Send, FileText, BarChart2, LogOut, Zap, BookOpen, Menu, X } from 'lucide-react'
 
 const links = [
@@ -12,7 +12,7 @@ const links = [
   { href: '/info', label: 'Info & Notes', icon: BookOpen },
 ]
 
-function SidebarContent({ onNav }: { onNav?: () => void }) {
+function NavLinks({ onNav }: { onNav?: () => void }) {
   const pathname = usePathname()
   const router = useRouter()
 
@@ -42,14 +42,14 @@ function SidebarContent({ onNav }: { onNav?: () => void }) {
         </div>
       </div>
 
-      {/* Nav */}
+      {/* Nav links */}
       <nav style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '3px' }}>
         {links.map(({ href, label, icon: Icon }) => (
           
-          <a  key={href}
+         <a   key={href}
             href={href}
-            className={`sidebar-link ${pathname === href ? 'active' : ''}`}
             onClick={onNav}
+            className={`sidebar-link ${pathname === href ? 'active' : ''}`}
           >
             <Icon size={15} />
             {label}
@@ -74,50 +74,135 @@ function SidebarContent({ onNav }: { onNav?: () => void }) {
 
 export default function Sidebar() {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+  const pathname = usePathname()
 
-  return (
-    <>
-      {/* Mobile top bar */}
-      <div style={{
-        display: 'none', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
-        background: 'var(--sidebar)', borderBottom: '1px solid var(--border)',
-        padding: '12px 16px', alignItems: 'center', justifyContent: 'space-between',
-      }} className="mobile-menu-btn" id="mobile-topbar">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Zap size={16} color="var(--accent)" />
-          <span style={{ fontSize: '14px', fontWeight: '700' }}>Kaizen <span style={{ color: 'var(--accent)' }}>Reach</span></span>
-        </div>
-        <button onClick={() => setMobileOpen(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text)' }}>
-          <Menu size={20} />
-        </button>
-      </div>
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
 
-      {/* Desktop Sidebar */}
-      <aside className="desktop-sidebar" style={{
-        width: '210px', minHeight: '100vh', background: 'var(--sidebar)',
-        borderRight: '1px solid var(--border)', flexShrink: 0,
-      }}>
-        <SidebarContent />
-      </aside>
+  // Close drawer on route change
+  useEffect(() => {
+    setMobileOpen(false)
+  }, [pathname])
 
-      {/* Mobile Overlay */}
-      {mobileOpen && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex' }}>
-          <div onClick={() => setMobileOpen(false)} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.7)' }} />
-          <div style={{
-            position: 'relative', width: '240px', background: 'var(--sidebar)',
-            borderRight: '1px solid var(--border)', height: '100%',
-          }}>
-            <button onClick={() => setMobileOpen(false)} style={{
-              position: 'absolute', top: 12, right: 12,
-              background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)',
+  // Lock body scroll when drawer open
+  useEffect(() => {
+    document.body.style.overflow = mobileOpen ? 'hidden' : ''
+    return () => { document.body.style.overflow = '' }
+  }, [mobileOpen])
+
+  if (isMobile) {
+    return (
+      <>
+        {/* Mobile top bar */}
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50,
+          height: '56px',
+          background: '#0a0d0b',
+          borderBottom: '1px solid var(--border)',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          padding: '0 16px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{
+              width: '28px', height: '28px', background: 'var(--accent-glow)',
+              border: '1px solid rgba(34,197,94,0.2)', borderRadius: '7px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
             }}>
-              <X size={18} />
-            </button>
-            <SidebarContent onNav={() => setMobileOpen(false)} />
+              <Zap size={14} color="var(--accent)" />
+            </div>
+            <span style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text)' }}>
+              Kaizen <span style={{ color: 'var(--accent)' }}>Reach</span>
+            </span>
           </div>
+          <button
+            onClick={() => setMobileOpen(true)}
+            style={{
+              background: 'var(--card)', border: '1px solid var(--border)',
+              borderRadius: '8px', padding: '7px 8px', cursor: 'pointer',
+              color: 'var(--text)', display: 'flex', alignItems: 'center',
+            }}
+          >
+            <Menu size={18} />
+          </button>
         </div>
-      )}
-    </>
+
+        {/* Spacer so content doesn't hide under topbar */}
+        <div style={{ height: '56px', flexShrink: 0 }} />
+
+        {/* Drawer overlay */}
+        {mobileOpen && (
+          <div
+            style={{
+              position: 'fixed', inset: 0, zIndex: 100,
+              display: 'flex',
+            }}
+          >
+            {/* Backdrop */}
+            <div
+              onClick={() => setMobileOpen(false)}
+              style={{
+                position: 'absolute', inset: 0,
+                background: 'rgba(0,0,0,0.75)',
+                backdropFilter: 'blur(2px)',
+              }}
+            />
+
+            {/* Drawer panel */}
+            <div style={{
+              position: 'relative', width: '240px', height: '100%',
+              background: '#0a0d0b',
+              borderRight: '1px solid var(--border)',
+              display: 'flex', flexDirection: 'column',
+              animation: 'slideIn 0.2s ease',
+            }}>
+              {/* Close button */}
+              <button
+                onClick={() => setMobileOpen(false)}
+                style={{
+                  position: 'absolute', top: '14px', right: '14px',
+                  background: 'var(--card)', border: '1px solid var(--border)',
+                  borderRadius: '7px', padding: '5px', cursor: 'pointer',
+                  color: 'var(--muted)', display: 'flex', alignItems: 'center',
+                  zIndex: 1,
+                }}
+              >
+                <X size={16} />
+              </button>
+
+              <NavLinks onNav={() => setMobileOpen(false)} />
+            </div>
+          </div>
+        )}
+
+        <style>{`
+          @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+          }
+        `}</style>
+      </>
+    )
+  }
+
+  // Desktop sidebar
+  return (
+    <aside style={{
+      width: '210px',
+      minHeight: '100vh',
+      background: '#0a0d0b',
+      borderRight: '1px solid var(--border)',
+      flexShrink: 0,
+      position: 'sticky',
+      top: 0,
+      height: '100vh',
+      overflowY: 'auto',
+    }}>
+      <NavLinks />
+    </aside>
   )
 }
