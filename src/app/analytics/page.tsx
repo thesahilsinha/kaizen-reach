@@ -25,86 +25,97 @@ export default function AnalyticsPage() {
   const failed = logs.filter(l => l.status === 'failed').length
   const rate = total > 0 ? ((sent / total) * 100).toFixed(1) : '0'
 
+  const statCards = [
+    { label: 'Total Emails', value: total, color: 'var(--text)' },
+    { label: 'Delivered', value: sent, color: 'var(--accent)' },
+    { label: 'Failed', value: failed, color: failed > 0 ? 'var(--danger)' : 'var(--muted)' },
+    { label: 'Success Rate', value: `${rate}%`, color: 'var(--accent)' },
+  ]
+
   return (
     <AuthGuard>
       <div style={{ display: 'flex', minHeight: '100vh' }}>
         <Sidebar />
-        <main style={{ flex: 1, padding: '32px', overflow: 'auto' }}>
+        <main style={{ flex: 1, padding: '28px 20px', overflow: 'auto', minWidth: 0 }}>
           <div className="animate-in">
-            <h2 style={{ fontSize: '22px', fontWeight: '700', color: '#e5e7eb', marginBottom: '4px' }}>Analytics</h2>
-            <p style={{ color: '#6b7280', fontSize: '13px', marginBottom: '28px' }}>Your outreach performance at a glance</p>
+            <h2 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--text)', marginBottom: '4px' }}>Analytics</h2>
+            <p style={{ color: 'var(--muted)', fontSize: '13px', marginBottom: '24px' }}>Your outreach performance at a glance</p>
 
-            {/* Stats */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '28px' }}>
-              {[
-                { label: 'Total Emails', value: total, color: '#e5e7eb' },
-                { label: 'Delivered', value: sent, color: '#22c55e' },
-                { label: 'Failed', value: failed, color: '#ef4444' },
-                { label: 'Success Rate', value: `${rate}%`, color: '#22c55e' },
-              ].map(s => (
+            {/* Stat Cards — 2x2 grid always */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px', marginBottom: '24px' }}>
+              {statCards.map(s => (
                 <div key={s.label} className="stat-card">
-                  <div style={{ fontSize: '28px', fontWeight: '700', color: s.color }}>{s.value}</div>
-                  <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '4px' }}>{s.label}</div>
+                  <div style={{ fontSize: '26px', fontWeight: '700', color: s.color, lineHeight: 1 }}>{s.value}</div>
+                  <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '6px' }}>{s.label}</div>
                 </div>
               ))}
             </div>
 
-            {/* Campaign Breakdown */}
-            <div className="card" style={{ padding: '24px', marginBottom: '24px' }}>
-              <h3 style={{ fontSize: '15px', fontWeight: '600', marginBottom: '20px' }}>Campaign Performance</h3>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
-                <thead>
-                  <tr style={{ borderBottom: '1px solid #1a2e24' }}>
-                    {['Campaign', 'Sent', 'Failed', 'Rate', 'Date'].map(h => (
-                      <th key={h} style={{ textAlign: 'left', padding: '8px 12px', color: '#6b7280', fontWeight: '500', fontSize: '12px' }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
+            {/* Campaign Performance — stacked cards, no table */}
+            <div className="card" style={{ padding: '20px', marginBottom: '20px' }}>
+              <h3 style={{ fontSize: '15px', fontWeight: '600', marginBottom: '16px', color: 'var(--text)' }}>Campaign Performance</h3>
+              {campaigns.filter(c => c.status === 'sent').length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '32px', color: 'var(--muted)', fontSize: '13px' }}>No sent campaigns yet.</div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   {campaigns.filter(c => c.status === 'sent').map(c => {
-                    const total = c.sent_count + c.failed_count
-                    const r = total > 0 ? ((c.sent_count / total) * 100).toFixed(0) : '—'
+                    const t = c.sent_count + c.failed_count
+                    const r = t > 0 ? ((c.sent_count / t) * 100).toFixed(0) : '—'
                     return (
-                      <tr key={c.id} style={{ borderBottom: '1px solid #111' }}>
-                        <td style={{ padding: '12px', color: '#e5e7eb', fontWeight: '500' }}>{c.name}</td>
-                        <td style={{ padding: '12px', color: '#22c55e' }}>{c.sent_count}</td>
-                        <td style={{ padding: '12px', color: c.failed_count > 0 ? '#ef4444' : '#6b7280' }}>{c.failed_count}</td>
-                        <td style={{ padding: '12px', color: '#e5e7eb' }}>{r}%</td>
-                        <td style={{ padding: '12px', color: '#6b7280' }}>{new Date(c.sent_at || c.created_at).toLocaleDateString()}</td>
-                      </tr>
+                      <div key={c.id} style={{
+                        padding: '14px', background: 'var(--card2)',
+                        border: '1px solid var(--border)', borderRadius: '10px',
+                        display: 'flex', flexDirection: 'column', gap: '8px',
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontWeight: '600', color: 'var(--text)', fontSize: '13.5px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{c.name}</span>
+                          <span style={{ fontSize: '13px', color: 'var(--accent)', fontWeight: '700', flexShrink: 0 }}>{r}%</span>
+                        </div>
+                        <div style={{ display: 'flex', gap: '16px', fontSize: '12px', flexWrap: 'wrap' }}>
+                          <span style={{ color: 'var(--accent)' }}>✓ {c.sent_count} sent</span>
+                          {c.failed_count > 0 && <span style={{ color: 'var(--danger)' }}>✗ {c.failed_count} failed</span>}
+                          <span style={{ color: 'var(--muted)', marginLeft: 'auto' }}>
+                            {new Date(c.sent_at || c.created_at).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
                     )
                   })}
-                </tbody>
-              </table>
-              {campaigns.filter(c => c.status === 'sent').length === 0 && (
-                <div style={{ textAlign: 'center', padding: '40px', color: '#4b5563', fontSize: '14px' }}>No sent campaigns yet.</div>
+                </div>
               )}
             </div>
 
-            {/* Recent Logs */}
-            <div className="card" style={{ padding: '24px' }}>
-              <h3 style={{ fontSize: '15px', fontWeight: '600', marginBottom: '20px' }}>Recent Email Log</h3>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
-                <thead>
-                  <tr style={{ borderBottom: '1px solid #1a2e24' }}>
-                    {['Email', 'Status', 'Error', 'Sent At'].map(h => (
-                      <th key={h} style={{ textAlign: 'left', padding: '8px 12px', color: '#6b7280', fontWeight: '500', fontSize: '12px' }}>{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
+            {/* Email Log — stacked cards, no table */}
+            <div className="card" style={{ padding: '20px' }}>
+              <h3 style={{ fontSize: '15px', fontWeight: '600', marginBottom: '16px', color: 'var(--text)' }}>Recent Email Log</h3>
+              {logs.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '32px', color: 'var(--muted)', fontSize: '13px' }}>No emails sent yet.</div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {logs.slice(0, 50).map(l => (
-                    <tr key={l.id} style={{ borderBottom: '1px solid #111' }}>
-                      <td style={{ padding: '10px 12px', color: '#9ca3af' }}>{l.contact_email}</td>
-                      <td style={{ padding: '10px 12px' }}>
+                    <div key={l.id} style={{
+                      padding: '12px 14px', background: 'var(--card2)',
+                      border: '1px solid var(--border)', borderRadius: '9px',
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px',
+                      flexWrap: 'wrap',
+                    }}>
+                      <span style={{
+                        fontSize: '12.5px', color: 'var(--muted)', fontFamily: 'DM Mono, monospace',
+                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                        flex: 1, minWidth: 0,
+                      }}>{l.contact_email}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+                        {l.error && (
+                          <span style={{ fontSize: '11px', color: 'var(--danger)', maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {l.error}
+                          </span>
+                        )}
                         <span className={`badge ${l.status === 'sent' ? 'badge-green' : 'badge-red'}`}>{l.status}</span>
-                      </td>
-                      <td style={{ padding: '10px 12px', color: '#ef4444', fontSize: '12px' }}>{l.error || '—'}</td>
-                      <td style={{ padding: '10px 12px', color: '#6b7280' }}>{new Date(l.sent_at).toLocaleString()}</td>
-                    </tr>
+                      </div>
+                    </div>
                   ))}
-                </tbody>
-              </table>
+                </div>
+              )}
             </div>
           </div>
         </main>
