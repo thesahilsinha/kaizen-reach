@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import Sidebar from '@/components/Sidebar'
 import AuthGuard from '@/components/AuthGuard'
 import { supabase } from '@/lib/supabase'
-import { Users, Send, BarChart2, TrendingUp, TrendingDown, Clock, CheckCircle, XCircle } from 'lucide-react'
+import { Users, Send, TrendingUp, TrendingDown, CheckCircle, XCircle, Clock } from 'lucide-react'
 
 export default function Dashboard() {
   const [stats, setStats] = useState({ contacts: 0, campaigns: 0, sent: 0, failed: 0 })
@@ -26,81 +26,115 @@ export default function Dashboard() {
   }, [])
 
   const statCards = [
-    { label: 'Total Contacts', value: stats.contacts, icon: Users, color: '#22c55e', change: '+12%' },
-    { label: 'Campaigns', value: stats.campaigns, icon: Send, color: '#22c55e', change: '+5%' },
-    { label: 'Emails Sent', value: stats.sent, icon: TrendingUp, color: '#22c55e', change: '+18%' },
-    { label: 'Failed', value: stats.failed, icon: TrendingDown, color: '#ef4444', change: '-2%' },
+    { label: 'Total Contacts', value: stats.contacts, icon: Users, color: 'var(--accent)', change: '+12%' },
+    { label: 'Campaigns', value: stats.campaigns, icon: Send, color: 'var(--accent)', change: '+5%' },
+    { label: 'Emails Sent', value: stats.sent, icon: TrendingUp, color: 'var(--accent)', change: '+18%' },
+    { label: 'Failed', value: stats.failed, icon: TrendingDown, color: 'var(--danger)', change: '-2%' },
   ]
 
   const statusBadge = (status: string) => {
-    if (status === 'sent') return <span className="badge badge-green"><CheckCircle size={10} style={{ marginRight: 4 }} />Sent</span>
-    if (status === 'failed') return <span className="badge badge-red"><XCircle size={10} style={{ marginRight: 4 }} />Failed</span>
-    if (status === 'draft') return <span className="badge badge-gray">Draft</span>
-    return <span className="badge badge-yellow"><Clock size={10} style={{ marginRight: 4 }} />Sending</span>
+    if (status === 'sent') return <span className="badge badge-green"><CheckCircle size={9} />Sent</span>
+    if (status === 'failed') return <span className="badge badge-red"><XCircle size={9} />Failed</span>
+    if (status === 'sending') return <span className="badge badge-yellow"><Clock size={9} />Sending</span>
+    return <span className="badge badge-gray">Draft</span>
   }
 
   return (
     <AuthGuard>
       <div style={{ display: 'flex', minHeight: '100vh' }}>
         <Sidebar />
-        <main style={{ flex: 1, padding: '32px', overflow: 'auto' }}>
+        <main style={{
+          flex: 1,
+          padding: '28px 20px',
+          overflow: 'auto',
+          minWidth: 0, // critical: prevents flex child from overflowing
+        }}>
           <div className="animate-in">
-            <h2 style={{ fontSize: '24px', fontWeight: '700', color: '#e5e7eb', marginBottom: '4px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: '700', color: 'var(--text)', marginBottom: '4px' }}>
               Welcome back 👋
             </h2>
-            <p style={{ color: '#6b7280', fontSize: '14px', marginBottom: '28px' }}>
+            <p style={{ color: 'var(--muted)', fontSize: '13px', marginBottom: '24px' }}>
               Here's what's happening with your outreach today.
             </p>
 
-            {/* Stat Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px', marginBottom: '28px' }}>
+            {/* Stat Cards — 2x2 on mobile, 4x1 on desktop */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(2, 1fr)',
+              gap: '12px',
+              marginBottom: '24px',
+            }}>
               {statCards.map(({ label, value, icon: Icon, color, change }) => (
                 <div key={label} className="stat-card">
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <div style={{
-                      width: '36px', height: '36px', background: '#0d2318', border: '1px solid #1e3a2f',
-                      borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      width: '32px', height: '32px', background: 'var(--accent-glow)',
+                      border: '1px solid rgba(34,197,94,0.15)', borderRadius: '8px',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
                     }}>
-                      <Icon size={16} color={color} />
+                      <Icon size={15} color={color} />
                     </div>
-                    <span style={{ fontSize: '12px', color, fontWeight: '600' }}>{change}</span>
+                    <span style={{ fontSize: '11px', color, fontWeight: '600' }}>{change}</span>
                   </div>
-                  <div style={{ marginTop: '16px' }}>
-                    <div style={{ fontSize: '28px', fontWeight: '700', color: '#e5e7eb' }}>{value.toLocaleString()}</div>
-                    <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '2px' }}>{label}</div>
+                  <div style={{ marginTop: '14px' }}>
+                    <div style={{ fontSize: '26px', fontWeight: '700', color: 'var(--text)', lineHeight: 1 }}>{value.toLocaleString()}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '4px' }}>{label}</div>
                   </div>
                 </div>
               ))}
             </div>
 
             {/* Recent Campaigns */}
-            <div className="card" style={{ padding: '24px' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: '600', marginBottom: '20px', color: '#e5e7eb' }}>Recent Campaigns</h3>
+            <div className="card" style={{ padding: '20px' }}>
+              <h3 style={{ fontSize: '15px', fontWeight: '600', marginBottom: '16px', color: 'var(--text)' }}>
+                Recent Campaigns
+              </h3>
+
               {recentCampaigns.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '40px', color: '#4b5563', fontSize: '14px' }}>
-                  No campaigns yet. <a href="/campaigns" style={{ color: '#22c55e', textDecoration: 'none' }}>Create your first →</a>
+                <div style={{ textAlign: 'center', padding: '32px', color: 'var(--muted)', fontSize: '13px' }}>
+                  No campaigns yet.{' '}
+                  <a href="/campaigns" style={{ color: 'var(--accent)', textDecoration: 'none' }}>Create your first →</a>
                 </div>
               ) : (
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
-                  <thead>
-                    <tr style={{ borderBottom: '1px solid #1a2e24' }}>
-                      {['Campaign', 'Subject', 'Sent', 'Failed', 'Status'].map(h => (
-                        <th key={h} style={{ textAlign: 'left', padding: '8px 12px', color: '#6b7280', fontWeight: '500', fontSize: '12px' }}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {recentCampaigns.map(c => (
-                      <tr key={c.id} style={{ borderBottom: '1px solid #111' }}>
-                        <td style={{ padding: '12px', color: '#e5e7eb', fontWeight: '500' }}>{c.name}</td>
-                        <td style={{ padding: '12px', color: '#9ca3af' }}>{c.subject}</td>
-                        <td style={{ padding: '12px', color: '#22c55e' }}>{c.sent_count}</td>
-                        <td style={{ padding: '12px', color: '#ef4444' }}>{c.failed_count}</td>
-                        <td style={{ padding: '12px' }}>{statusBadge(c.status)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {recentCampaigns.map(c => (
+                    <div key={c.id} style={{
+                      padding: '14px',
+                      background: 'var(--card2)',
+                      border: '1px solid var(--border)',
+                      borderRadius: '10px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '8px',
+                    }}>
+                      {/* Row 1: name + status */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                        <span style={{
+                          fontWeight: '600', color: 'var(--text)', fontSize: '13.5px',
+                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1,
+                        }}>{c.name}</span>
+                        {statusBadge(c.status)}
+                      </div>
+
+                      {/* Row 2: subject */}
+                      <div style={{
+                        fontSize: '12px', color: 'var(--muted)',
+                        overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                      }}>
+                        {c.subject}
+                      </div>
+
+                      {/* Row 3: sent/failed/date */}
+                      <div style={{ display: 'flex', gap: '14px', fontSize: '12px', flexWrap: 'wrap' }}>
+                        <span style={{ color: 'var(--accent)' }}>✓ {c.sent_count} sent</span>
+                        {c.failed_count > 0 && <span style={{ color: 'var(--danger)' }}>✗ {c.failed_count} failed</span>}
+                        <span style={{ color: 'var(--muted)', marginLeft: 'auto' }}>
+                          {new Date(c.created_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
           </div>
