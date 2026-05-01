@@ -295,3 +295,18 @@ label {
   .stat-grid { grid-template-columns: 1fr 1fr !important; }
   .btn-primary, .btn-ghost { padding: 8px 14px; font-size: 13px; }
 }
+
+/* Mobile page offset for fixed topbar */
+@media (max-width: 767px) {
+  main {
+    padding-top: 20px !important;
+  }
+
+  /* Ensure flex layout doesn't clip */
+  .page-main {
+    min-width: 0 !important;
+    width: 100% !important;
+    padding: 16px !important;
+    padding-top: 20px !important;
+  }
+}
