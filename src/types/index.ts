@@ -4,6 +4,7 @@ export interface Contact {
   name?: string
   company?: string
   tags?: string[]
+  category: string
   status: string
   created_at: string
 }
@@ -13,6 +14,9 @@ export interface Template {
   name: string
   subject: string
   body: string
+  cta_text?: string
+  cta_url?: string
+  style?: string
   created_at: string
 }
 
@@ -21,6 +25,10 @@ export interface Campaign {
   name: string
   subject: string
   body: string
+  cta_text?: string
+  cta_url?: string
+  style?: string
+  target_category?: string
   status: string
   sent_count: number
   failed_count: number
@@ -36,4 +44,13 @@ export interface EmailLog {
   status: string
   error?: string
   sent_at: string
+}
+
+export interface Note {
+  id: string
+  title: string
+  content: string
+  color: string
+  pinned: boolean
+  created_at: string
 }
