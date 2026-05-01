@@ -280,21 +280,7 @@ label {
 .style-card.selected { border-color: var(--accent); background: var(--accent-glow); }
 
 /* Responsive */
-@media (max-width: 768px) {
-  .mobile-menu-btn { display: flex; }
-  .desktop-sidebar { display: none; }
-  .mobile-sidebar-open { display: flex !important; }
-  .page-main { padding: 16px !important; }
-  .stat-grid { grid-template-columns: repeat(2, 1fr) !important; }
-  .form-grid-2 { grid-template-columns: 1fr !important; }
-  .hide-mobile { display: none !important; }
-  .campaign-row { flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; }
-}
 
-@media (max-width: 480px) {
-  .stat-grid { grid-template-columns: 1fr 1fr !important; }
-  .btn-primary, .btn-ghost { padding: 8px 14px; font-size: 13px; }
-}
 
 /* Mobile page offset for fixed topbar */
 @media (max-width: 767px) {
